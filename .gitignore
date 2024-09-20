@@ -1,0 +1,10 @@
+.vscode/
+envdwh/
+.env/
+ETL/__pycache__/
+ETL/BINANCE/EXTRACT/files/
+ETL/BINANCE/EXTRACT/raw_files/
+ETL/BINANCE/TRANSFORM/files/
+ETL/EVM/EXTRACT/raw_files/
+ETL/EVM/LOAD/ENV_DIR/
+ETL/EVM/TRANSFORM/files/
