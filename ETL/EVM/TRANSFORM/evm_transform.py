@@ -111,6 +111,9 @@ def logs_events(df:pd.DataFrame):
     logs.reset_index(inplace=True, drop=True)
     logs.drop(logs[['block_signed_at','block_height', 'raw_log_topics', 'raw_log_data']], axis=1, inplace=True)
 
+
+    
+
     #On extrait les champs label et url du champ explorers
     df['explorers'] = df.apply(lambda row: row['explorers'][0], axis=1)
     df = pd.concat([df, pd.json_normalize(df['explorers'])], axis=1)
@@ -216,7 +219,7 @@ def params(df:pd.DataFrame):
     #On drop la colonne decoded.params car elle a etait explode | json_normalize précédemment
     #On drop les lignes en NA
     #On charge en csv
-    df_param.drop(['decoded.params', 'decoded'], inplace=True, axis=1)
+    df_param.drop(['decoded.params', 'decoded.name', 'decoded'], inplace=True, axis=1)
     df_param.drop(df_param_reject.index, inplace=True)
     df_param_address = df_param.loc[(df_param['type']=='address')| (df_param['type']=='bytes32')]
     df_param.drop(df_param_address.index, inplace=True)
@@ -228,7 +231,6 @@ def params(df:pd.DataFrame):
                              "tx_offset":"TX_OFFSET",
                              "log_offset":"LOG_OFFSET",
                              "tx_hash":"TX_HASH",
-                             "decoded.name":"LOGS_FUNCTION_NAME",
                              "name":"PARAM_NAME",
                              "type":"PARAM_TYPE",
                              "indexed":"INDEXED",
@@ -237,7 +239,6 @@ def params(df:pd.DataFrame):
                              "tx_offset":"TX_OFFSET",
                              "log_offset":"LOG_OFFSET",
                              "tx_hash":"TX_HASH",
-                             "decoded.name":"LOGS_FUNCTION_NAME",
                              "name":"PARAM_NAME",
                              "type":"PARAM_TYPE",
                              "indexed":"INDEXED",
@@ -249,10 +250,12 @@ def params(df:pd.DataFrame):
     print("Fin de l'extraction des paramètres")
 
     #Drop tous les champs redondants dans le df des params et charge en csv
-    df.drop(['decoded.params', 'decoded.name', 'decoded', 'decoded.signature'], inplace=True, axis=1)
+    df.drop(['decoded.params', 'decoded'], inplace=True, axis=1)
     df.rename(columns={"tx_offset":"TX_OFFSET",
                        "log_offset":"LOG_OFFSET",
                        "tx_hash":"TX_HASH",
+                       "decoded.name":"LOGS_FUNCTION_NAME",
+                       'decoded.signature':'LOGS_FUNCTION_SIGNATURE',
                        "sender_address":"TOKEN_ADDRESS"}, inplace=True)
     df.to_csv(f'{wd}/EVM/TRANSFORM/files/logs.csv', index=False)
 
@@ -269,7 +272,6 @@ def params(df:pd.DataFrame):
 
 
 def main():
-    
     """
     Extrait les différents fichiers qui seront intégrés dans la base SQL 
     """
