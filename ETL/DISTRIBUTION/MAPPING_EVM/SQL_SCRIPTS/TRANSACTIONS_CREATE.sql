@@ -7,5 +7,6 @@ CREATE TABLE IF NOT EXISTS mapping_evm.TRANSACTIONS(
     ID_TOKEN char(40) not null,
     AMOUNT DECIMAL(20, 8) not null,
     FEE DECIMAL(12, 5),
-    TOKEN_FEE char(40)
+    TOKEN_FEE char(40),
+    CONSTRAINT PK_TRANSACTIONS primary key (TRANSACTION_ID)
 );
