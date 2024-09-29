@@ -16,11 +16,11 @@ engine = create_engine(url)
 
 with engine.connect() as conn:
 
-    #INSERT TOKENS
+    #INSERT TOKEN
     tokens = f"{wd}/BINANCE/TRANSFORM/files/tokens.csv"
     df_tokens = pd.read_csv(tokens)
-    truncate_table("TOKENS", conn)
-    df_tokens.to_sql(con=engine, name="TOKENS", if_exists='append', index=False)
+    truncate_table("TOKEN", conn)
+    df_tokens.to_sql(con=engine, name="TOKEN", if_exists='append', index=False)
 
     #INSERT TRANSACTIONS
     transactions = f"{wd}/BINANCE/TRANSFORM/files/transactions.csv"
@@ -29,13 +29,13 @@ with engine.connect() as conn:
     df_transactions.to_sql(con=engine, name="TRANSACTIONS", if_exists='append', index=False)
 
     #INSERT COINS_DEPOSIT_WITHDRAW
-    CoinsDepositWithdraw = f"{wd}/BINANCE/TRANSFORM/files/transactions.csv"
+    CoinsDepositWithdraw = f"{wd}/BINANCE/TRANSFORM/files/CoinDepositWithdraw.csv"
     df_CoinsDepositWithdraw = pd.read_csv(CoinsDepositWithdraw)
     truncate_table("COINS_DEPOSIT_WITHDRAW", conn)
     df_CoinsDepositWithdraw.to_sql(con=engine, name="COINS_DEPOSIT_WITHDRAW", if_exists='append', index=False)
 
-    #INSERT COINS_DEPOSIT_WITHDRAW
-    FiatDepositWithdraw = f"{wd}/BINANCE/TRANSFORM/files/transactions.csv"
+    #INSERT FIAT_DEPOSIT_WITHDRAW
+    FiatDepositWithdraw = f"{wd}/BINANCE/TRANSFORM/files/FiatDepositWithdraw.csv"
     df_FiatDepositWithdraw = pd.read_csv(FiatDepositWithdraw)
     truncate_table("FIAT_DEPOSIT_WITHDRAW", conn)
     df_FiatDepositWithdraw.to_sql(con=engine, name="FIAT_DEPOSIT_WITHDRAW", if_exists='append', index=False)
