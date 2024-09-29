@@ -1,25 +1,16 @@
 import os
 import sys
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 import pandas as pd
 from dotenv import load_dotenv
 load_dotenv()
 ETL_folder_relative = os.path.dirname(os.getenv('working_directory'))
 sys.path.append(ETL_folder_relative)
+from ETL.utility import truncate_table
 
 url = os.getenv('EVM_DB_URL')
 wd = os.getenv('working_directory')
 engine = create_engine(url, echo=True)
-
-def truncate_table(table, cursor):
-    """
-    Execute un ordre de truncate sur la table table en visant le schéma du curseur
-    """
-    sql = f"delete from {table};"
-    print(sql)
-    cursor.execute(text(sql))
-    cursor.commit()
-
 
 with engine.connect() as conn:
 

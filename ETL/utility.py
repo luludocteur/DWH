@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+from sqlalchemy import text
 
 def get_files_from_directory(path):
     """
@@ -26,4 +27,13 @@ def delete_all_files_from_dir(path):
     for file in full_name_list:
         if os.path.isfile(file):
             os.remove(file)
+
+def truncate_table(table, cursor):
+    """
+    Execute un ordre de truncate sur la table table en visant le schéma du curseur
+    """
+    sql = f"delete from {table};"
+    print(sql)
+    cursor.execute(text(sql))
+    cursor.commit()
 
