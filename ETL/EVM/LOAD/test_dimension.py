@@ -9,7 +9,7 @@ ETL_folder_relative = os.path.dirname(wd)
 sys.path.append(ETL_folder_relative)
 from ETL.utility import get_files_from_directory, csv_to_df
 
-files = get_files_from_directory(f"{wd}/EVM/TRANSFORM/files/")
+files = get_files_from_directory(f"{wd}/BINANCE/TRANSFORM/files/")
 
 dim_df = pd.DataFrame(columns=['Table', 'Champ', 'Longueur_max'])
 

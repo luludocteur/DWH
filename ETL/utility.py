@@ -28,12 +28,12 @@ def delete_all_files_from_dir(path):
         if os.path.isfile(file):
             os.remove(file)
 
-def truncate_table(table, cursor):
+def truncate_table(table, conn):
     """
     Execute un ordre de truncate sur la table table en visant le schéma du curseur
     """
     sql = f"delete from {table};"
     print(sql)
-    cursor.execute(text(sql))
-    cursor.commit()
+    conn.execute(text(sql))
+    conn.commit()
 
