@@ -33,9 +33,10 @@ def FiatDepositWithdraw():
                             'amount':'AMOUNT',
                             'isDeposit':'IS_DEPOSIT',
                             'totalFee':'TRANSACTION_FEE'}, inplace=True)
-    df_fiat = match_replace_token(df_fiat, 'FIAT', f"^({CoinsInfos()})$")
+    df_fiat['FIAT'].apply(load_token)
     df_fiat = df_fiat.round({'AMOUNT':3})
-    df_fiat.sort_values(by="TIMESTAMP", inplace=True) 
+    df_fiat.sort_values(by="TIMESTAMP", inplace=True)
+    df_fiat['TIMESTAMP'] = pd.to_datetime(df_fiat['TIMESTAMP'], unit="ms")
     df_fiat.to_csv(f'{wd}/BINANCE/TRANSFORM/files/FiatDepositWithdraw.csv', index=False)
 
 def CoinDepositWithdraw():
@@ -82,9 +83,10 @@ def CoinDepositWithdraw():
                              'amount':'AMOUNT',
                              'address':'ADDRESS',
                              'transactionFee': 'TRANSACTION_FEE'}, inplace=True)
-    df_coins = match_replace_token(df_coins, 'COIN', f"^({CoinsInfos()})$")
+    df_coins['COIN'].apply(load_token)
     df_coins = df_coins.round({'AMOUNT':3})
-    df_coins.sort_values(by="TIMESTAMP", inplace=True) 
+    df_coins.sort_values(by="TIMESTAMP", inplace=True)
+    df_coins['TIMESTAMP'] =  pd.to_datetime(df_coins['TIMESTAMP'], unit='ms')
     df_coins.to_csv(f'{wd}/BINANCE/TRANSFORM/files/CoinDepositWithdraw.csv', index=False)
 
 def CoinsInfos():
@@ -171,49 +173,25 @@ def myTradesConvertTxs():
     df_myTrades = myTrades()
 
     df_tx = pd.concat([df_convert, df_myTrades], ignore_index=True).sort_values(by="TIMESTAMP", ignore_index=True)
+    df_tx['TIMESTAMP'] = pd.to_datetime(df_tx['TIMESTAMP'], unit='ms')
     df_tx = df_tx.round({'FROM_QUANTITY':3, 'FROM_PRICE': 3, 'TO_QUANTITY':3, 'TO_PRICE':3})
-    df_tx = match_replace_token(df_tx, 'TO_ASSET', f"^({CoinsInfos()})$")
-    df_tx = match_replace_token(df_tx, 'FROM_ASSET', f"^({CoinsInfos()})$")
-    df_tx = match_replace_token(df_tx, 'FEE_ASSET', f"^({CoinsInfos()})$")
+    df_tx['TO_ASSET'].apply(load_token)
+    df_tx['FROM_ASSET'].apply(load_token)
+    df_tx['FEE_ASSET'].apply(load_token)
     df_tx.to_csv(f'{wd}/BINANCE/TRANSFORM/files/Transactions.csv', index=False)
 
-def match_replace_token(df, column, regex_pattern):
+def load_token(ticker):
     """
     """
-    next_id = token_dimension_table[token_dimension_table.columns[0]].max() + 1 if not token_dimension_table.empty else 1
-
-    def replace_ticker(ticker):
-        """
-        """
-        nonlocal next_id
-
-        # if ticker is None:
-        #     return None
-
-        if not token_dimension_table.loc[token_dimension_table[token_dimension_table.columns[1]]==ticker].empty:
-            return token_dimension_table.loc[token_dimension_table[token_dimension_table.columns[1]]==ticker][token_dimension_table.columns[0]].values[0]
-        
-        else:
-            token_dimension_table.loc[len(token_dimension_table)] = [next_id, ticker]
-            next_id+=1
-            return next_id - 1
-        
-    def apply_replacement(value):
-        """
-        """
-        if pd.isna(value):
-            return value
-        return re.sub(regex_pattern, lambda m : str(replace_ticker(m.group())), value)
-    
-    df[column] = df[column].apply(apply_replacement)
-
-    return df
-
+    if pd.isna(ticker):
+        return None
+    elif token_dimension_table.loc[token_dimension_table==ticker].empty:
+        token_dimension_table.loc[len(token_dimension_table)] = ticker
 
 def main():
     delete_all_files_from_dir(f"{wd}/BINANCE/TRANSFORM/files/")
     global token_dimension_table
-    token_dimension_table = pd.DataFrame(columns=['TOKEN_ID', 'TOKEN'])
+    token_dimension_table = pd.Series(name='TOKEN')
     FiatDepositWithdraw()
     CoinDepositWithdraw()
     myTradesConvertTxs()
