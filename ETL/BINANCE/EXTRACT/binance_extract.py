@@ -17,6 +17,8 @@ binance_apikey = os.getenv('binance_apikey')
 binance_secret = os.getenv('binance_secret')
 now = int(time.time()*1000) #UNIX timestamp milliseconds
 wd = os.getenv('working_directory')
+account_creation_timestamp = os.getenv('account_creation_timestamp')
+
 
 def create_signature(args):
     import hmac
@@ -162,7 +164,7 @@ def generator_modulo_day(days):
     nb de minisecondes dans un intervalle: ms_interval=int(60*60*24*days*1000)
     nb d'intervalle entre la création du compte et maintenant: nb_interval = (fin-début)/ms_interval
     """
-    début = int(os.getenv("account_creation_timestamp"))*1000
+    début = int(account_creation_timestamp)*1000
     fin = now
     ms_interval = int(60*60*24*days*1000)
     nb_interval = math.ceil((fin-début)/ms_interval)
@@ -210,7 +212,7 @@ def extract_fiat_deposit_withdraw(isWithdraw):
     flag == 0 -> withdraw
     flag == 1 -> deposit
     """
-    response = create_response("/sapi/v1/fiat/orders", 'USER_DATA', {'transactionType':isWithdraw, 'beginTime':int(os.getenv("account_creation_timestamp"))*1000, 'endTime':now})
+    response = create_response("/sapi/v1/fiat/orders", 'USER_DATA', {'transactionType':isWithdraw, 'beginTime':int(account_creation_timestamp)*1000, 'endTime':now})
     df = pd.DataFrame(response.json())
     df.reset_index(inplace=True)
     df_data = pd.json_normalize(df['data'])
@@ -223,6 +225,21 @@ def extract_fiat_deposit_withdraw(isWithdraw):
         df.to_csv(f'{wd}/BINANCE/EXTRACT/raw_files/Fiat/FiatWithdraw.csv', index=False)
     else :
         raise Exception("Ni 1 Ni 0")
+    
+def extract_fiat_payment():
+    """
+    """
+    gen_date_30 = generator_modulo_day(30)
+    df_payment = pd.DataFrame()
+
+    for start, end in gen_date_30:
+        response = create_response("/sapi/v1/fiat/payments", 'USER_DATA', {'transactionType':0, 'beginTime':start, 'endTime':end})
+        reponse_json = response.json()
+        if 'data' in reponse_json:
+            df = pd.DataFrame(reponse_json['data'])
+            df_payment = pd.concat([df_payment, df], ignore_index=True)
+    print(df_payment)
+
     
 def extract_coins_deposit_withdraw():
     """
@@ -287,4 +304,9 @@ def main():
     extract_CoinsInformations()
     extract_coins_deposit_withdraw()
 
-main()
+#main()
+
+def test():
+    extract_fiat_payment()
+
+test()
