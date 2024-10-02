@@ -9,3 +9,4 @@ ETL/EVM/EXTRACT/raw_files/
 ETL/EVM/LOAD/ENV_DIR/
 ETL/EVM/TRANSFORM/files/
 .DS_Store
+automate_mysqldump.rtf

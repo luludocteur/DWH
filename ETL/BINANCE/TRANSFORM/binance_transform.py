@@ -19,13 +19,15 @@ def FiatDepositWithdraw():
     """
     df_deposit = pd.read_csv(f'{wd}/BINANCE/EXTRACT/raw_files/Fiat/FiatDeposit.csv')
     df_deposit['isDeposit'] = True
+    df_deposit['TYPE'] = 'Fiat_Deposit'
     df_withdraw = pd.read_csv(f'{wd}/BINANCE/EXTRACT/raw_files/Fiat/FiatWithdraw.csv')
     df_withdraw['isDeposit'] = False
+    df_withdraw['TYPE'] = 'Fiat_Withdraw'
 
     df_fiat = pd.concat([df_deposit, df_withdraw], ignore_index=True)
     df_fiat['updateTime'] = df_fiat['updateTime'].astype(np.int64)
     df_fiat.drop(['index', 'code', 'message', 'total', 'method', 'status', 'createTime','indicatedAmount'], inplace=True, axis=1)
-    df_fiat = df_fiat.reindex(columns=['orderNo', 'updateTime', 'success', 'fiatCurrency', 'amount','isDeposit', 'totalFee'])
+    df_fiat = df_fiat.reindex(columns=['orderNo', 'updateTime', 'TYPE', 'success', 'fiatCurrency', 'amount','isDeposit', 'totalFee'])
     df_fiat.rename(columns={'orderNo':'ORDER_ID',
                             'updateTime':'TIMESTAMP',
                             'success':'IS_SUCCESS',
@@ -53,6 +55,7 @@ def CoinDepositWithdraw():
         df_deposit = pd.read_csv(f'{wd}/BINANCE/EXTRACT/files/CoinDeposit.csv')
         df_deposit.drop(['confirmTimes', 'unlockConfirm', 'status', 'transferType', 'walletType', 'addressTag'], axis=1, inplace=True)
         df_deposit.rename(columns={'insertTime':'timestamp'}, inplace=True)
+        df_deposit['TYPE'] = 'Coin_Deposit'
         df_deposit['isDeposit'] = True
         return df_deposit
     
@@ -65,6 +68,7 @@ def CoinDepositWithdraw():
         df_withdraw = pd.read_csv(f'{wd}/BINANCE/EXTRACT/files/CoinWithdraw.csv')
         df_withdraw.rename(columns={'completeTime':'timestamp'}, inplace=True)
         df_withdraw['timestamp'] = pd.to_datetime(df_withdraw['timestamp']).values.astype(np.int64)//10**6
+        df_withdraw['TYPE'] = 'Coin_Withdraw'
         df_withdraw['isDeposit'] = False
         df_withdraw.drop(['status', 'transferType', 'walletType', 'addressTag', 'applyTime', 'info', 'confirmNo', 'txKey'], axis=1, inplace=True)
 
@@ -73,7 +77,7 @@ def CoinDepositWithdraw():
     df_deposit = CoinDeposit()
     df_withdraw = CoinWithdraw()
     df_coins = pd.concat([df_deposit, df_withdraw], ignore_index=True)
-    df_coins = df_coins.reindex(columns=['id', 'txId', 'timestamp', 'isDeposit', 'network', 'coin', 'amount', 'transactionFee', 'address'])
+    df_coins = df_coins.reindex(columns=['id', 'txId', 'timestamp', 'TYPE', 'isDeposit', 'network', 'coin', 'amount', 'transactionFee', 'address'])
     df_coins.rename(columns={'id':'ID',
                              'txId':'TX_ID',
                              'timestamp':'TIMESTAMP',
@@ -98,7 +102,7 @@ def CoinsInfos():
     return '|'.join(list_coinsinfos)
 
 
-def myTradesConvertTxs():
+def myTradesConvertFiatPaymentTxs():
     """
     Transformer les fichiers ConvertTradeHistory.csv et myTrades.csv pour les mettre au même format
     Structure d'une transaction : ORDER_ID', 'TIMESTAMP', 'FROM_ASSET', 'FROM_QUANTITY', 'FROM_PRICE', 'TO_ASSET', 'TO_QUANTITY', 'TO_PRICE'
@@ -138,11 +142,12 @@ def myTradesConvertTxs():
                                                                                                                                                                   row.inverseprice, row.qty,
                                                                                                                                                                   row.quoteQty)), axis=1)
         df_mytrades.drop(['index', 'id', 'orderListId', 'isMaker', 'isBestMatch', 'symbol', 'token2', 'token1', 'price', 'isBuyer', 'inverseprice', 'quoteQty', 'qty'], inplace=True, axis=1)
+        df_mytrades['TYPE'] = 'myTrades'
         df_mytrades.rename(columns={'orderId':"ORDER_ID",
                                     'time':'TIMESTAMP',
                                     'commission':'TRANSACTION_FEE',
                                     'commissionAsset':"FEE_ASSET"}, inplace=True)
-        df_mytrades = df_mytrades.reindex(columns=['ORDER_ID', 'TIMESTAMP', 'FROM_ASSET', 'FROM_QUANTITY', 'FROM_PRICE', 'TO_ASSET', 'TO_QUANTITY', 'TO_PRICE', 'TRANSACTION_FEE', 'FEE_ASSET'])
+        df_mytrades = df_mytrades.reindex(columns=['ORDER_ID', 'TIMESTAMP', 'TYPE', 'FROM_ASSET', 'FROM_QUANTITY', 'FROM_PRICE', 'TO_ASSET', 'TO_QUANTITY', 'TO_PRICE', 'TRANSACTION_FEE', 'FEE_ASSET'])
 
         return df_mytrades
     
@@ -157,6 +162,7 @@ def myTradesConvertTxs():
         """
         df_convert = pd.read_csv(f"{wd}/BINANCE/EXTRACT/files/ConvertTradeHistory.csv")
         df_convert.drop(['index', 'startTime', 'endTime', 'limit', 'moreData', 'quoteId', 'orderStatus', 'orderType', 'side'], inplace=True, axis=1)
+        df_convert['TYPE'] = 'Convert'
         df_convert.rename(columns={'orderId':'ORDER_ID',
                            'createTime':'TIMESTAMP',
                            'fromAsset':'FROM_ASSET',
@@ -165,14 +171,42 @@ def myTradesConvertTxs():
                            'toAsset':'TO_ASSET',
                            'toAmount': 'TO_QUANTITY',
                            'inverseRatio':'TO_PRICE'}, inplace=True)
-        df_convert = df_convert.reindex(columns=['ORDER_ID', 'TIMESTAMP', 'FROM_ASSET', 'FROM_QUANTITY', 'FROM_PRICE', 'TO_ASSET', 'TO_QUANTITY', 'TO_PRICE'])
+        df_convert = df_convert.reindex(columns=['ORDER_ID', 'TIMESTAMP', 'TYPE', 'FROM_ASSET', 'FROM_QUANTITY', 'FROM_PRICE', 'TO_ASSET', 'TO_QUANTITY', 'TO_PRICE'])
+
         return df_convert
     
+    def FiatPayment():
+        """
+        
+        """
+        df_fiatpayment = pd.read_csv(f"{wd}/BINANCE/EXTRACT/raw_files/FiatPayment/FiatPaymentBuy.csv")
+        df_fiatpayment['totalFee'] = df_fiatpayment['totalFee'].apply(lambda x: x if x!=0.0 else None)
+        df_fiatpayment['updateTime'] = df_fiatpayment['updateTime'].astype(np.int64)
+        df_fiatpayment['FEE_ASSET'] = df_fiatpayment.apply(lambda row: row.cryptoCurrency if row.totalFee is None else None, axis=1)
+        df_fiatpayment['FROM_PRICE'] = 1/df_fiatpayment['price']
+        df_fiatpayment.drop(['status', 'createTime'], axis=1, inplace=True)
+        df_fiatpayment.rename(columns={
+                            'orderNo' : 'ORDER_ID',
+                            'updateTime':'TIMESTAMP',
+                           'fiatCurrency':'FROM_ASSET',
+                           'sourceAmount':'FROM_QUANTITY',
+                           'cryptoCurrency':'TO_ASSET',
+                           'paymentMethod':'TYPE',
+                           'obtainAmount': 'TO_QUANTITY',
+                           'price':'TO_PRICE',
+                           'totalFee':'TRANSACTION_FEE'}, inplace=True)
+        df_fiatpayment = df_fiatpayment.reindex(columns=['ORDER_ID', 'TIMESTAMP', 'TYPE', 'FROM_ASSET', 'FROM_QUANTITY', 'FROM_PRICE', 'TO_ASSET', 'TO_QUANTITY', 'TO_PRICE', 'TRANSACTION_FEE', 'FEE_ASSET'])
+        return df_fiatpayment
+
+
+
     regex_coinsinfos = CoinsInfos()
     df_convert = Convert()
     df_myTrades = myTrades()
+    df_fiatpayment = FiatPayment()
 
-    df_tx = pd.concat([df_convert, df_myTrades], ignore_index=True).sort_values(by="TIMESTAMP", ignore_index=True)
+    df_tx = pd.concat([df_convert, df_myTrades], ignore_index=True)
+    df_tx = pd.concat([df_tx, df_fiatpayment], ignore_index=True).sort_values(by="TIMESTAMP", ignore_index=True)
     df_tx['TIMESTAMP'] = pd.to_datetime(df_tx['TIMESTAMP'], unit='ms')
     df_tx = df_tx.round({'FROM_QUANTITY':3, 'FROM_PRICE': 3, 'TO_QUANTITY':3, 'TO_PRICE':3})
     df_tx['TO_ASSET'].apply(load_token)
@@ -194,7 +228,16 @@ def main():
     token_dimension_table = pd.Series(name='TOKEN')
     FiatDepositWithdraw()
     CoinDepositWithdraw()
-    myTradesConvertTxs()
+    myTradesConvertFiatPaymentTxs()
     token_dimension_table.to_csv(f'{wd}/BINANCE/TRANSFORM/files/Tokens.csv', index=False)
 
 main()
+
+
+
+
+
+def test():
+    pass
+
+#test()

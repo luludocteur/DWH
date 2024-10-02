@@ -239,9 +239,9 @@ def extract_fiat_payment(isSell):
             df = pd.DataFrame(reponse_json['data'])
             df_payment = pd.concat([df_payment, df], ignore_index=True)
     if isSell == 0:
-        df_payment.to_csv(f'{wd}/BINANCE/EXTRACT/raw_files/FiatPayment/FiatPaymentDeposit.csv', index=False)
+        df_payment.to_csv(f'{wd}/BINANCE/EXTRACT/raw_files/FiatPayment/FiatPaymentBuy.csv', index=False)
     elif isSell == 1:
-        df_payment.to_csv(f'{wd}/BINANCE/EXTRACT/raw_files/FiatPayment/FiatPaymentWithdraw.csv', index=False)
+        df_payment.to_csv(f'{wd}/BINANCE/EXTRACT/raw_files/FiatPayment/FiatPaymentSell.csv', index=False)
     else :
         raise Exception("Ni 1 Ni 0")
 
