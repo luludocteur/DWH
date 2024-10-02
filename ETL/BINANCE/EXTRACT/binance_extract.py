@@ -226,19 +226,24 @@ def extract_fiat_deposit_withdraw(isWithdraw):
     else :
         raise Exception("Ni 1 Ni 0")
     
-def extract_fiat_payment():
+def extract_fiat_payment(isSell):
     """
     """
     gen_date_30 = generator_modulo_day(30)
     df_payment = pd.DataFrame()
 
     for start, end in gen_date_30:
-        response = create_response("/sapi/v1/fiat/payments", 'USER_DATA', {'transactionType':0, 'beginTime':start, 'endTime':end})
+        response = create_response("/sapi/v1/fiat/payments", 'USER_DATA', {'transactionType':isSell, 'beginTime':start, 'endTime':end})
         reponse_json = response.json()
         if 'data' in reponse_json:
             df = pd.DataFrame(reponse_json['data'])
             df_payment = pd.concat([df_payment, df], ignore_index=True)
-    print(df_payment)
+    if isSell == 0:
+        df_payment.to_csv(f'{wd}/BINANCE/EXTRACT/raw_files/FiatPayment/FiatPaymentDeposit.csv', index=False)
+    elif isSell == 1:
+        df_payment.to_csv(f'{wd}/BINANCE/EXTRACT/raw_files/FiatPayment/FiatPaymentWithdraw.csv', index=False)
+    else :
+        raise Exception("Ni 1 Ni 0")
 
     
 def extract_coins_deposit_withdraw():
@@ -303,10 +308,12 @@ def main():
     extract_fiat_deposit_withdraw(1)
     extract_CoinsInformations()
     extract_coins_deposit_withdraw()
+    extract_fiat_payment(0)
+    extract_fiat_payment(1)
 
-#main()
+main()
 
 def test():
-    extract_fiat_payment()
+    pass
 
-test()
+#test()
