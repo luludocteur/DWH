@@ -10,3 +10,5 @@ ETL/EVM/LOAD/ENV_DIR/
 ETL/EVM/TRANSFORM/files/
 .DS_Store
 automate_mysqldump.rtf
+keyfile.txt
+auto_mysqldump.sh
