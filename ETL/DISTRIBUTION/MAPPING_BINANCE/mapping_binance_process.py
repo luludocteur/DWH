@@ -20,6 +20,7 @@ with engine.connect() as conn:
     conn.execute(text("call mapping_binance.INSERT_FIAT_DEPOSIT_WITHDRAW();"))
     conn.execute(text("call mapping_binance.INSERT_R_TRANSACTION();"))
     conn.execute(text("call mapping_binance.INSERT_TRANSACTION();"))
-
+    conn.execute(text("commit;"))
+    
     conn.close()
 print(conn.closed)

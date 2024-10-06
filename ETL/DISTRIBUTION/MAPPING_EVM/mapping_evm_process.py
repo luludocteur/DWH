@@ -19,6 +19,7 @@ with engine.connect() as conn:
     conn.execute(text("call mapping_evm.insert_log_transfer();"))
     conn.execute(text("call mapping_evm.INSERT_LOG_MINT();"))
     conn.execute(text("call mapping_evm.INSERT_TRANSACTIONS();"))
+    conn.execute(text("commit;"))
 
     conn.close()
 print(conn.closed)
