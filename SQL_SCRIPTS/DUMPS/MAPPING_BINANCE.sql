@@ -1,4 +1,4 @@
--- MySQL dump 10.13  Distrib 5.7.24, for osx10.9 (x86_64)
+-- MySQL dump 10.13  Distrib 9.0.0, for macos14 (arm64)
 --
 -- Host: localhost    Database: MAPPING_BINANCE
 -- ------------------------------------------------------
@@ -7,7 +7,7 @@
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!50503 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `R_TRANSACTION`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `R_TRANSACTION` (
   `ORDER_ID` varchar(40) NOT NULL,
   `TIMESTAMP` timestamp NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE `R_TRANSACTION` (
 
 DROP TABLE IF EXISTS `SOURCE`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `SOURCE` (
   `ID_SOURCE` char(40) NOT NULL,
   `SOURCE` char(10) NOT NULL,
@@ -57,7 +57,7 @@ CREATE TABLE `SOURCE` (
 
 DROP TABLE IF EXISTS `TOKEN`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `TOKEN` (
   `ID_TOKEN` char(40) NOT NULL,
   `TOKEN` char(6) NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE `TOKEN` (
 
 DROP TABLE IF EXISTS `TRANSACTION`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `TRANSACTION` (
   `ID_TRANSACTION` char(40) NOT NULL,
   `TIMESTAMP` timestamp NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE `TRANSACTION` (
 
 DROP TABLE IF EXISTS `TYPE`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `TYPE` (
   `ID_TYPE` char(40) NOT NULL,
   `TYPE` varchar(40) NOT NULL,
@@ -122,7 +122,7 @@ begin
     
     insert into mapping_binance.transaction
     select 
-	sha1(tx_id) as ID_TRANSACTION,
+	sha1(concat(tx_id, 'binance')) as ID_TRANSACTION,
     timestamp as TIMESTAMP,
     typ.id_type as ID_TYPE,
     sha1('Binance') as ID_SOURCE,
@@ -400,4 +400,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-10-06 13:01:27
+-- Dump completed on 2024-10-08 23:43:25
