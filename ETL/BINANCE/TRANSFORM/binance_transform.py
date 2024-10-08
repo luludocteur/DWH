@@ -25,11 +25,11 @@ def FiatDepositWithdraw():
     df_withdraw['TYPE'] = 'Fiat_Withdraw'
 
     df_fiat = pd.concat([df_deposit, df_withdraw], ignore_index=True)
-    df_fiat['updateTime'] = df_fiat['updateTime'].astype(np.int64)
-    df_fiat.drop(['index', 'code', 'message', 'total', 'method', 'status', 'createTime','indicatedAmount'], inplace=True, axis=1)
-    df_fiat = df_fiat.reindex(columns=['orderNo', 'updateTime', 'TYPE', 'success', 'fiatCurrency', 'amount','isDeposit', 'totalFee'])
+    df_fiat['createTime'] = df_fiat['createTime'].astype(np.int64)
+    df_fiat.drop(['index', 'code', 'message', 'total', 'method', 'status', 'updateTime','indicatedAmount'], inplace=True, axis=1)
+    df_fiat = df_fiat.reindex(columns=['orderNo', 'createTime', 'TYPE', 'success', 'fiatCurrency', 'amount','isDeposit', 'totalFee'])
     df_fiat.rename(columns={'orderNo':'ORDER_ID',
-                            'updateTime':'TIMESTAMP',
+                            'createTime':'TIMESTAMP',
                             'success':'IS_SUCCESS',
                             'fiatCurrency':'FIAT',
                             'amount':'AMOUNT',
@@ -181,13 +181,13 @@ def myTradesConvertFiatPaymentTxs():
         """
         df_fiatpayment = pd.read_csv(f"{wd}/BINANCE/EXTRACT/raw_files/FiatPayment/FiatPaymentBuy.csv")
         df_fiatpayment['totalFee'] = df_fiatpayment['totalFee'].apply(lambda x: x if x!=0.0 else None)
-        df_fiatpayment['updateTime'] = df_fiatpayment['updateTime'].astype(np.int64)
+        df_fiatpayment['createTime'] = df_fiatpayment['createTime'].astype(np.int64)
         df_fiatpayment['FEE_ASSET'] = df_fiatpayment.apply(lambda row: row.cryptoCurrency if row.totalFee is None else None, axis=1)
         df_fiatpayment['FROM_PRICE'] = 1/df_fiatpayment['price']
-        df_fiatpayment.drop(['status', 'createTime'], axis=1, inplace=True)
+        df_fiatpayment.drop(['status', 'updateTime'], axis=1, inplace=True)
         df_fiatpayment.rename(columns={
                             'orderNo' : 'ORDER_ID',
-                            'updateTime':'TIMESTAMP',
+                            'createTime':'TIMESTAMP',
                            'fiatCurrency':'FROM_ASSET',
                            'sourceAmount':'FROM_QUANTITY',
                            'cryptoCurrency':'TO_ASSET',

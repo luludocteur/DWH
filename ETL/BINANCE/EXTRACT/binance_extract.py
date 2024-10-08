@@ -296,6 +296,7 @@ def extract_coins_deposit_withdraw():
 
 def main():
     delete_all_files_from_dir(f"{wd}/BINANCE/EXTRACT/raw_files/ConvertTrade/")
+    delete_all_files_from_dir(f"{wd}/BINANCE/EXTRACT/raw_files/FiatPayment/")
     delete_all_files_from_dir(f"{wd}/BINANCE/EXTRACT/raw_files/myTrades/")
     delete_all_files_from_dir(f"{wd}/BINANCE/EXTRACT/raw_files/Fiat/")
     delete_all_files_from_dir(f"{wd}/BINANCE/EXTRACT/raw_files/CoinDepositWithdraw/")
