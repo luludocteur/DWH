@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS distribution.TRANSACTION(
     ID_SOURCE char(40) not null,
     ID_TOKEN char(40),
     AMOUNT DECIMAL(20, 8),
+    USD_PRICE DECIMAL(20,10) not null,
     FEE DECIMAL(12, 10),
     TOKEN_FEE char(40),
     CONSTRAINT PK_TRANSACTION primary key (ID_TRANSACTION)

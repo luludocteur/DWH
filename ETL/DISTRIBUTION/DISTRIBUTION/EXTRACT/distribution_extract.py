@@ -3,7 +3,7 @@ import sys
 import pandas as pd
 import numpy as np
 import requests
-from datetime import datetime
+import time
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 load_dotenv()
@@ -45,49 +45,50 @@ def get_USD_price():
             "api_key":crypto_compare_apikey,
             "fsym":row['TOKEN'], 
             "tsyms":"USD", 
-            "ts":str(row['timestamp'])
+            "ts":str(row['TIMESTAMP'])
         }
 
         response = create_response("data/pricehistorical", args=params)
 
         if response.status_code==200:
             data = response.json()
-            if row['TOKEN'] in data:
-                return data.get(row['TOKEN']).get('USD')
+            if row['TOKEN'].upper() in data:
+                return data.get(row['TOKEN'].upper()).get('USD')
             else :
-                print(data)
+                return 0 
         else:
             print("C'est laa merde")
             return None
 
-    token_per_timestamp = request_distribution("""select 
-                                        timestamp,
-                                        case 
-                                        when tx.id_token is not null then tok.token
-                                        else ftok.token
-                                        end as TOKEN
-                                        from distribution.transaction tx
-                                        left join distribution.token tok
-                                        on tok.id_token=tx.id_token
-                                        left join distribution.token ftok
-                                        on ftok.id_token=tx.token_fee;""")
-    token_per_timestamp['timestamp'] = np.int64(token_per_timestamp['timestamp'])//10**9
-    token_per_timestamp['price'] =  token_per_timestamp.apply(get_price, axis=1)
-    token_per_timestamp.to_csv(f'{wd}/DISTRIBUTION/DISTRIBUTION/EXTRACT/file/TokenPricePerTimestamp.csv', index=False)
+    token_per_timestamp = request_distribution("""select * from (
+                                                select distinct
+                                                timestamp as TIMESTAMP,
+                                                case 
+                                                when tx.id_token is not null then tok.token
+                                                else ftok.token
+                                                end as TOKEN
+                                                from (
+                                                select * from mapping_binance.transaction
+                                                union
+                                                select transaction_id, timestamp, id_type, id_source, id_token, amount, fee, token_fee from mapping_evm.transactions) as tx
+                                                left join distribution.token tok
+                                                on tok.id_token=tx.id_token
+                                                left join distribution.token ftok
+                                                on ftok.id_token=tx.token_fee) as base
+                                                where (base.timestamp, base.token) not in (select timestamp, token from distribution.usd_price);""")
+    
+    if not token_per_timestamp.empty:
+        token_per_timestamp['TIMESTAMP'] = np.int64(token_per_timestamp['TIMESTAMP'])//10**9
+        token_per_timestamp['USD_PRICE'] =  token_per_timestamp.apply(get_price, axis=1)
+        token_per_timestamp['TIMESTAMP'] = pd.to_datetime(token_per_timestamp['TIMESTAMP'], unit='s')
+        now = int(time.time()*1000)
+        os.rename(f'{wd}/DISTRIBUTION/DISTRIBUTION/EXTRACT/files/TokenPricePerTimestamp.csv', f'{wd}/DISTRIBUTION/DISTRIBUTION/EXTRACT/files/TokenPricePerTimestamp_{now}.csv')
+        token_per_timestamp.to_csv(f'{wd}/DISTRIBUTION/DISTRIBUTION/EXTRACT/files/TokenPricePerTimestamp.csv', index=False)
+    else :
+        print('Pas de nouveau prix à requeter')
+
+def main():
+    get_USD_price()
 
 
-get_USD_price()
-
-
-
-
-
-
-# response = create_response("data/pricehistorical", args={"api_key":crypto_compare_apikey,
-#                                                          "fsym":"BTC", 
-#                                                          "tsyms":"USD", 
-#                                                          "ts":"1728489911"})
-# print(response.status_code)
-# print(response.json())
-
-
+main()
