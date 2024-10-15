@@ -1,4 +1,4 @@
--- MySQL dump 10.13  Distrib 9.0.0, for macos14 (arm64)
+-- MySQL dump 10.13  Distrib 5.7.24, for osx10.9 (x86_64)
 --
 -- Host: localhost    Database: EVM
 -- ------------------------------------------------------
@@ -7,7 +7,7 @@
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
+/*!40101 SET NAMES utf8 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `GAS_METADATA`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `GAS_METADATA` (
   `GAS_ID` int NOT NULL,
   `CONTRACT_DECIMALS` char(2) NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE `GAS_METADATA` (
 
 DROP TABLE IF EXISTS `LOGS`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `LOGS` (
   `TX_OFFSET` int NOT NULL,
   `LOG_OFFSET` int NOT NULL,
@@ -55,7 +55,7 @@ CREATE TABLE `LOGS` (
 
 DROP TABLE IF EXISTS `PARAMS_ADDRESS`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `PARAMS_ADDRESS` (
   `PARAM_ID` int NOT NULL,
   `TX_OFFSET` int NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE `PARAMS_ADDRESS` (
 
 DROP TABLE IF EXISTS `PARAMS_VALUES`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `PARAMS_VALUES` (
   `PARAM_ID` int NOT NULL,
   `TX_OFFSET` int NOT NULL,
@@ -93,7 +93,7 @@ CREATE TABLE `PARAMS_VALUES` (
 
 DROP TABLE IF EXISTS `TOKENS`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `TOKENS` (
   `TOKEN_CONTRACT_DECIMALS` char(2) NOT NULL,
   `TOKEN_NAME` varchar(100) NOT NULL,
@@ -111,7 +111,7 @@ CREATE TABLE `TOKENS` (
 
 DROP TABLE IF EXISTS `TRANSACTIONS`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `TRANSACTIONS` (
   `BLOCKCHAIN` varchar(30) NOT NULL,
   `BLOCK_TIMESTAMP` timestamp NOT NULL,
@@ -155,4 +155,4 @@ CREATE TABLE `TRANSACTIONS` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-10-08 23:43:25
+-- Dump completed on 2024-10-15 21:52:23

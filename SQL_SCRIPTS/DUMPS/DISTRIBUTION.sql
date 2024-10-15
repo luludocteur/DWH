@@ -1,4 +1,4 @@
--- MySQL dump 10.13  Distrib 9.0.0, for macos14 (arm64)
+-- MySQL dump 10.13  Distrib 5.7.24, for osx10.9 (x86_64)
 --
 -- Host: localhost    Database: DISTRIBUTION
 -- ------------------------------------------------------
@@ -7,7 +7,7 @@
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
+/*!40101 SET NAMES utf8 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `SOURCE`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `SOURCE` (
   `ID_SOURCE` char(40) NOT NULL,
   `SOURCE` char(40) NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE `SOURCE` (
 
 DROP TABLE IF EXISTS `TOKEN`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `TOKEN` (
   `ID_TOKEN` char(40) NOT NULL,
   `TOKEN` varchar(60) NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE `TOKEN` (
 
 DROP TABLE IF EXISTS `TRANSACTION`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `TRANSACTION` (
   `ID_TRANSACTION` char(40) NOT NULL,
   `TIMESTAMP` timestamp NOT NULL,
@@ -58,6 +58,7 @@ CREATE TABLE `TRANSACTION` (
   `ID_SOURCE` char(40) NOT NULL,
   `ID_TOKEN` char(40) DEFAULT NULL,
   `AMOUNT` decimal(20,8) DEFAULT NULL,
+  `USD_PRICE` decimal(20,10) NOT NULL,
   `FEE` decimal(12,10) DEFAULT NULL,
   `TOKEN_FEE` char(40) DEFAULT NULL,
   PRIMARY KEY (`ID_TRANSACTION`)
@@ -70,11 +71,26 @@ CREATE TABLE `TRANSACTION` (
 
 DROP TABLE IF EXISTS `TYPE`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `TYPE` (
   `ID_TYPE` char(40) NOT NULL,
   `TYPE` varchar(40) NOT NULL,
   PRIMARY KEY (`ID_TYPE`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `USD_PRICE`
+--
+
+DROP TABLE IF EXISTS `USD_PRICE`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `USD_PRICE` (
+  `TIMESTAMP` timestamp NOT NULL,
+  `TOKEN` varchar(70) NOT NULL,
+  `USD_PRICE` decimal(20,10) DEFAULT NULL,
+  PRIMARY KEY (`TIMESTAMP`,`TOKEN`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -163,9 +179,29 @@ begin
     delete from distribution.transaction;
     
     insert into distribution.transaction
-	select * from mapping_binance.transaction
+	select base.id_transaction, base.timestamp, base.id_type, base.id_source, base.id_token, base.amount, usd.usd_price, base.fee, base.token_fee from (
+select * from mapping_binance.transaction
 union
-select transaction_id, timestamp, id_type, id_source, id_token, amount, fee, token_fee from mapping_evm.transactions;
+select transaction_id, timestamp, id_type, id_source, id_token, amount, fee, token_fee from mapping_evm.transactions) as base
+left join distribution.token tok
+on tok.id_token = base.id_token
+left join distribution.usd_price usd
+on usd.timestamp = base.timestamp
+and (usd.token=tok.token)
+where base.id_token is not null
+
+union
+
+select base.id_transaction, base.timestamp, base.id_type, base.id_source, base.id_token, base.amount, usd.usd_price, base.fee, base.token_fee from (
+select * from mapping_binance.transaction
+union
+select transaction_id, timestamp, id_type, id_source, id_token, amount, fee, token_fee from mapping_evm.transactions) as base
+left join distribution.token ftok
+on ftok.id_token = base.token_fee
+left join distribution.usd_price usd
+on usd.timestamp = base.timestamp
+and (usd.token=ftok.token)
+where base.id_token is null;
 
     SET SQL_SAFE_UPDATES = 1;
 end ;;
@@ -212,4 +248,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-10-08 23:43:25
+-- Dump completed on 2024-10-15 21:52:23
