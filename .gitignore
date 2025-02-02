@@ -6,8 +6,9 @@ ETL/BINANCE/EXTRACT/files/
 ETL/BINANCE/EXTRACT/raw_files/
 ETL/BINANCE/TRANSFORM/files/
 ETL/EVM/EXTRACT/raw_files/
-ETL/EVM/LOAD/ENV_DIR/
-ETL/EVM/TRANSFORM/files/
+ETL/EVM/OLD/EXTRACT/raw_files/
+ETL/EVM/OLD/LOAD/ENV_DIR/
+ETL/EVM/OLD/TRANSFORM/files/
 .DS_Store
 keyfile.txt
 auto_mysqldump.sh

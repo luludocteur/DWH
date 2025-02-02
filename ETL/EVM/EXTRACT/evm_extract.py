@@ -1,91 +1,85 @@
 import os
 import sys
 import requests
-from requests.auth import HTTPBasicAuth
-import json
 import pandas as pd
-from covalent import CovalentClient
+import json
 from dotenv import load_dotenv
 load_dotenv()
-ETL_folder_relative = os.path.dirname(os.getenv('working_directory'))
-sys.path.append(ETL_folder_relative)
-from ETL.utility import delete_all_files_from_dir
-
-address = os.getenv('EVM_address')
-covalent_API_KEY = os.getenv('covalent_apikey')
-wd = os.getenv('working_directory')
 
 
-def create_response(endpoint, args=None):
 
-    """
-    Constructeur de réponse API en fonction de l'endpoint préconstruit à la main
-    On peut aussi utiliser les paramètres de args en option (voir doc covalent)
-    """
+class EXTRACT:
 
-    BASE_URL = "https://api.covalenthq.com/v1/"
-    URL = BASE_URL + endpoint
+    WD = os.getenv('working_directory')
 
+    def __init__(self, BASE_URL, apikey, address):
+        
+        self.BASE_URL = BASE_URL
+        self.address = address
+        self.apikey = apikey
+        self.chains = ['eth', 'arbitrum', 'avalanche', 'bsc', 'fantom', 'linea', 'polygon', 'moonbeam', 'optimism', 'base']
     
-    headers = {
-        "accept": "application/json",
-    }
+    def get_response(self, callUrl, headers=None, auth=None, params=None):
+        """
+        Crée une réponse api
+        """
+        URL = self.BASE_URL + callUrl
+        self.response = requests.get(URL, headers=headers, auth=auth, params=params)
 
-    basic = HTTPBasicAuth(covalent_API_KEY, '')
-    response = requests.get(URL, headers=headers, auth=basic, params=args)
-    return response
-
-def chains(walletAddress):
-    """
-    Retourne les informations relatives aux blockchains avec lesquelles la walletAdress a interagit
-    """
-    response = create_response(f"address/{walletAddress}/activity/")
-    with open(f'{wd}/EVM/EXTRACT/raw_files/chains.json', 'w') as file:
-        json.dump(response.json(), file, indent=3)
+    def get_chains(self):
+        """
+        Ajoute la liste des chains à requeter à self.chains.
+        En dur pour le moment
+        """
+        #self.chains = ['eth', 'arbitrum', 'avalanche', 'bsc', 'fantom', 'linea', 'polygon', 'moonbeam', 'optimism', 'base']
 
 
-def chain_count(chainName, walletAddress):
-    """
-    Compte le nombre de transactions effectuées sur la chainName
-    """
-    response = create_response(f"{chainName}/address/{walletAddress}/transactions_summary/")
-    count = response.json()["data"]["items"][0]["total_count"]
-    with open(f'{wd}/EVM/EXTRACT/raw_files/chains_details/{chainName}_count.json', 'w') as file:
-        json.dump(response.json(), file, indent=3)
-    return count
+class MORALIS_EXTRACT(EXTRACT):
 
-def transactions_per_chains(chainName, walletAddress, page):
-    response = create_response(f"{chainName}/address/{walletAddress}/transactions_v3/page/{page}/", {"quote-currency":"USD", "block-signed-at-asc":"true"})
-    with open(f'{wd}/EVM/EXTRACT/raw_files/tx/{chainName}_tx_{page}.json', 'w') as file:
-        json.dump(response.json(), file, indent=3)
+    def get_page_cursor(self):
+        """
+        Retourne le curseur de la page de transaction actuellement requetée.
+        Permet de savoir si on continue ou non
+        """
+        return self.response.json().get('cursor', None)
 
-def extract_data(walletAddress):
-    """
-    Extrait les transactions des blockchains chainName par pages (100txs/page)
-    """
+    def get_walletHistoryByChain(self, chain, fromDate, toDate, cursor=None):
+        """
+        Retourne l'historique de transaction pour une chain
+        """
+        callUrl=f"wallets/{self.address}/history"
+        headers={"accept":"application/json",
+                'X-API-Key':self.apikey}
+        params={'chain':chain,
+                'from_date':fromDate,
+                'to_date':toDate,
+                'include_internal_transactions':True,
+                'ntf_metadata':True,
+                'cursor':cursor,
+                'order':'ASC'}
+        return self.get_response(callUrl, headers=headers, params=params)
     
-    with open(f'{wd}/EVM/EXTRACT/raw_files/chains.json', 'r') as file:
-        chains = json.load(file)
+    def save_walletHistoryForChain(self, fromDate, toDate):
+        """
+        Retourne l'historique de transactions pour toutes les chaines de self.chains
+        """
+        for chain in self.chains:
+            print(chain)
+            n=0
+            self.get_walletHistoryByChain(chain, fromDate, toDate)
+            with open(f'{self.WD}/EVM/EXTRACT/raw_files/tx/{chain}_tx_{fromDate}_{toDate}_{n}.json', 'w') as file:
+                json.dump(self.response.json(), file, indent=3)
+            cursor = self.get_page_cursor()
+            while cursor is not None:
+                n+=1
+                self.get_walletHistoryByChain(chain, fromDate, toDate, cursor)
+                with open(f'{self.WD}/EVM/EXTRACT/raw_files/tx/{chain}_tx_{fromDate}_{toDate}_{n}.json', 'w') as file:
+                    json.dump(self.response.json(), file, indent=3)
+                cursor = self.get_page_cursor()
 
-    chains_df = pd.DataFrame(chains['data']['items'])
-    chainlist = chains_df['name'].to_list()
-    chainlist.remove('gnosis-mainnet')
-    chainlist.remove('celo-mainnet')
-    chainlist.remove('blast-mainnet')
-    chainlist.remove('base-mainnet')
-    
-
-    #On enlève gnosis au moins pour le moment, que des fausses transactions et prend bcp de temps à charger
-    for chainName in chainlist:
-        print(chainName)
-        count = chain_count(chainName, walletAddress)
-        for i in range(count//100+1):
-            transactions_per_chains(chainName, walletAddress, i)
 
 
-def main():
-    delete_all_files_from_dir(f"{wd}/EVM/EXTRACT/raw_files/tx/")
-    chains(address)
-    extract_data(address)
 
-main()
+
+
+
