@@ -36,4 +36,3 @@ drop table mapping_binance.token;
 drop table mapping_binance.transaction;
 drop table mapping_binance.r_transaction;
 */
-
